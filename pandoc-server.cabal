@@ -39,7 +39,7 @@ library
     , pandoc
   default-language: Haskell2010
 
-executable pandoc-server-exe
+executable pandoc-server
   main-is: Main.hs
   other-modules:
       Paths_pandoc_server
