@@ -65,18 +65,21 @@ server = convert
   convert' params = do
     let readerFormat = fromMaybe "markdown" $ from params
     let writerFormat = fromMaybe "html" $ to params
-    (reader, readerExts) <- getReader readerFormat
-    (writer, writerExts) <- getWriter writerFormat
-    case (reader, writer) of
-      (TextReader r , TextWriter w) ->
-        r def{ readerExtensions = readerExts } (text params) >>=
-           w def{ writerExtensions = writerExts
+    (readerSpec, readerExts) <- getReader readerFormat
+    (writerSpec, writerExts) <- getWriter writerFormat
+    -- We don't yet handle binary formats:
+    reader <- case readerSpec of
+                TextReader r -> return r
+                _ -> throwError $ PandocAppError $
+                       readerFormat <> " is not a text reader"
+    writer <- case writerSpec of
+                TextWriter w -> return w
+                _ -> throwError $ PandocAppError $
+                       readerFormat <> " is not a text reader"
+    reader def{ readerExtensions = readerExts } (text params) >>=
+      writer def{ writerExtensions = writerExts
                 , writerWrapText = fromMaybe WrapAuto (wrapText params)
                 , writerColumns = fromMaybe 72 (columns params) }
-      (TextReader _, _) -> throwError $ PandocAppError $
-                            writerFormat <> " is not a text writer"
-      (_, _) -> throwError $ PandocAppError $
-                            readerFormat <> " is not a text reader"
 
   handleErr (Right t) = return t
   handleErr (Left err) = throwError $
