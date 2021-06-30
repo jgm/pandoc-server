@@ -36,7 +36,10 @@ $(deriveJSON defaultOptions ''Params)
 -- consisting of a JSON-encoded Params structure and responds to
 -- Get requests with either plain text or JSON, depending on the
 -- Accept header.
-type API = "convert" :> ReqBody '[JSON] Params :> Post '[PlainText, JSON] Text
+type API =
+  "convert" :> ReqBody '[JSON] Params :> Post '[PlainText, JSON] Text
+  :<|>
+  "convert-batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
 
 app :: Application
 app = serve api server
@@ -46,6 +49,7 @@ api = Proxy
 
 server :: Server API
 server = convert
+    :<|> mapM convert
  where
   -- We use runPure for the pandoc conversions, which ensures that
   -- they will do no IO.  This makes the server safe to use.  However,
