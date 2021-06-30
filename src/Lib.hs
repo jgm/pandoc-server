@@ -14,9 +14,11 @@ import Network.Wai
 import Servant
 import Text.Pandoc
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Maybe (fromMaybe)
+import Data.Char (isAlphaNum)
 
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
@@ -27,6 +29,8 @@ data Params = Params
   , to             :: Maybe Text
   , wrapText       :: Maybe WrapOption
   , columns        :: Maybe Int
+  , standalone     :: Maybe Bool
+  , template       :: Maybe Text
   } deriving (Show)
 
 -- Automatically derive code to convert to/from JSON.
@@ -65,6 +69,21 @@ server = convert
     let writerFormat = fromMaybe "html" $ to params
     (readerSpec, readerExts) <- getReader readerFormat
     (writerSpec, writerExts) <- getWriter writerFormat
+    let isStandalone = fromMaybe False (standalone params)
+    let toformat = T.toLower $ T.takeWhile isAlphaNum $ writerFormat
+    mbTemplate <- if isStandalone
+                     then case template params of
+                            Nothing -> Just <$>
+                              compileDefaultTemplate toformat
+                            Just t  -> do
+                              res <- runWithPartials
+                                (compileTemplate
+                                ("custom." <> T.unpack toformat) t)
+                              case res of
+                                Left e -> throwError $
+                                  PandocTemplateError (T.pack e)
+                                Right tpl -> return $ Just tpl
+                     else return Nothing
     -- We don't yet handle binary formats:
     reader <- case readerSpec of
                 TextReader r -> return r
@@ -74,10 +93,13 @@ server = convert
                 TextWriter w -> return w
                 _ -> throwError $ PandocAppError $
                        readerFormat <> " is not a text reader"
-    reader def{ readerExtensions = readerExts } (text params) >>=
+    reader def{ readerExtensions = readerExts
+              , readerStandalone = isStandalone }
+           (text params) >>=
       writer def{ writerExtensions = writerExts
                 , writerWrapText = fromMaybe WrapAuto (wrapText params)
-                , writerColumns = fromMaybe 72 (columns params) }
+                , writerColumns = fromMaybe 72 (columns params)
+                , writerTemplate = mbTemplate }
 
   handleErr (Right t) = return t
   handleErr (Left err) = throwError $

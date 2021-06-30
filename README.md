@@ -35,6 +35,8 @@ the following fields:
 - `to` (defaults to `"html"`)
 - `wrapText` (`"WrapAuto"` (default), `"WrapNone"`, or `"WrapPreserve"`)
 - `columns` (integer, defaults to 72)
+- `standalone` (boolean, defaults to false)
+- `template` (defaults to the default template for the output format)
 
 Example of use (with `httpie`):
 
