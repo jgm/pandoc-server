@@ -75,14 +75,8 @@ server = convert
                      then case template params of
                             Nothing -> Just <$>
                               compileDefaultTemplate toformat
-                            Just t  -> do
-                              res <- runWithPartials
-                                (compileTemplate
-                                ("custom." <> T.unpack toformat) t)
-                              case res of
-                                Left e -> throwError $
-                                  PandocTemplateError (T.pack e)
-                                Right tpl -> return $ Just tpl
+                            Just t  -> Just <$>
+                              compileCustomTemplate toformat t
                      else return Nothing
     -- We don't yet handle binary formats:
     reader <- case readerSpec of
@@ -104,3 +98,9 @@ server = convert
   handleErr (Right t) = return t
   handleErr (Left err) = throwError $
     err500 { errBody = TLE.encodeUtf8 $ TL.fromStrict $ renderError err }
+
+  compileCustomTemplate toformat t = do
+    res <- runWithPartials $ compileTemplate ("custom." <> T.unpack toformat) t
+    case res of
+      Left e -> throwError $ PandocTemplateError (T.pack e)
+      Right tpl -> return tpl
