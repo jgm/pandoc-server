@@ -1,17 +1,12 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.34.4.
---
--- see: https://github.com/sol/hpack
-
+cabal-version:  1.12
 name:           pandoc-server
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/pandoc-server#readme>
+description:    Simple server for pandoc conversions.
 homepage:       https://github.com/githubuser/pandoc-server#readme
 bug-reports:    https://github.com/githubuser/pandoc-server/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2021 Author name here
+author:         John MacFarlane
+maintainer:     jgm@berkeley.edu
+copyright:      2021 John MacFarlane
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -34,9 +29,9 @@ library
     , base >=4.7 && <5
     , servant-server
     , wai
-    , warp
     , text
     , pandoc
+  ghc-options: -Wall
   default-language: Haskell2010
 
 executable pandoc-server
@@ -52,7 +47,9 @@ executable pandoc-server
     , pandoc-server
     , servant-server
     , wai
+    , wai-logger
     , warp
+  ghc-options: -Wall
   default-language: Haskell2010
 
 test-suite pandoc-server-test
@@ -65,6 +62,7 @@ test-suite pandoc-server-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , bytestring
     , base
     , hspec
     , hspec-wai
@@ -72,5 +70,8 @@ test-suite pandoc-server-test
     , pandoc-server
     , servant-server
     , wai
+    , wai-extra
     , warp
+    , http-types
+  ghc-options: -Wall
   default-language: Haskell2010

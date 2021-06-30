@@ -6,15 +6,22 @@ import Lib (app)
 import Test.Hspec
 import Test.Hspec.Wai
 import Test.Hspec.Wai.JSON
+import Network.Wai.Test (SResponse)
+import Network.HTTP.Types
+import Data.ByteString as BS
+import Data.ByteString.Lazy as LBS
 
 main :: IO ()
 main = hspec spec
 
+postJSON :: BS.ByteString -> LBS.ByteString -> WaiSession st SResponse
+postJSON url req = request methodPost url headers req
+  where
+   headers = [(hContentType, "application/json")]
+
 spec :: Spec
 spec = with (return app) $ do
-    describe "GET /users" $ do
-        it "responds with 200" $ do
-            get "/users" `shouldRespondWith` 200
-        it "responds with [User]" $ do
-            let users = "[{\"userId\":1,\"userFirstName\":\"Isaac\",\"userLastName\":\"Newton\"},{\"userId\":2,\"userFirstName\":\"Albert\",\"userLastName\":\"Einstein\"}]"
-            get "/users" `shouldRespondWith` users
+    describe "POST /convert" $ do
+        it "responds with converted text" $ do
+            postJSON "/convert" [json|{text: "*hi*", to: "latex"}|]
+              `shouldRespondWith` "\\emph{hi}"

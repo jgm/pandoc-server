@@ -4,14 +4,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Lib
-    ( startApp
-    , app
+    ( app
+    , Params(..)
     ) where
 
 import Data.Aeson
 import Data.Aeson.TH
 import Network.Wai
-import Network.Wai.Handler.Warp
 import Servant
 import Text.Pandoc
 import Data.Text (Text)
@@ -37,12 +36,7 @@ $(deriveJSON defaultOptions ''Params)
 -- consisting of a JSON-encoded Params structure and responds to
 -- Get requests with either plain text or JSON, depending on the
 -- Accept header.
-type API = "convert" :> ReqBody '[JSON] Params :> Get '[PlainText, JSON] Text
-
-startApp :: IO ()
-startApp = do
-  putStrLn "Starting server on port 8080."
-  run 8080 app
+type API = "convert" :> ReqBody '[JSON] Params :> Post '[PlainText, JSON] Text
 
 app :: Application
 app = serve api server
