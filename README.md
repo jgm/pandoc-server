@@ -1,5 +1,12 @@
 # pandoc-server
 
+**Note:** This project is obsolete.
+Starting with version 2.19.2, `pandoc` itself can be run as a
+full-featured server.  See the `pandoc` documentation for
+details.
+
+---
+
 A small example of a servant-based server for doing pandoc conversions.
 Customize to fit your needs!
 
